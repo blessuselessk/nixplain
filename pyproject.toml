@@ -9,6 +9,9 @@ description = "HATC — Human-Agent Teaming Comments toolchain"
 requires-python = ">=3.11"
 dependencies = ["click>=8.0", "toon-format>=0.1"]
 
+[project.optional-dependencies]
+refine = ["anthropic>=0.40"]
+
 [project.scripts]
 hatc = "hatc.cli:main"
 

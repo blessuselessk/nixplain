@@ -124,9 +124,11 @@ def compile(directory: Path, output: Path | None):
 
 @cli.command()
 @click.argument("file", type=click.Path(exists=True, path_type=Path))
-def annotate(file: Path):
+@click.option("--refine", is_flag=True, default=False,
+              help="Use LLM (Claude) to refine static signals into human-quality intents")
+def annotate(file: Path, refine: bool):
     """Suggest #! intent annotations for unannotated blocks."""
-    suggestions = annotate_file(file)
+    suggestions = annotate_file(file, refine=refine)
     if suggestions:
         for s in suggestions:
             click.echo(s)
