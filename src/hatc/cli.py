@@ -14,9 +14,14 @@ from .compiler import compile_directory
 from .parser import parse_file
 
 
-def _blocks_to_json(blocks) -> str:
-    """Serialize blocks to JSON, handling dataclass conversion."""
-    data = [asdict(b) for b in blocks]
+def _blocks_to_dicts(blocks) -> list[dict]:
+    return [asdict(b) for b in blocks]
+
+
+def _serialize(data, fmt: str) -> str:
+    if fmt == "toon":
+        from toon_format import encode
+        return encode(data)
     return json.dumps(data, indent=2)
 
 
@@ -28,10 +33,12 @@ def cli():
 
 @cli.command()
 @click.argument("file", type=click.Path(exists=True, path_type=Path))
-def parse(file: Path):
-    """Parse HATC annotations from a file and output JSON."""
+@click.option("-f", "--format", "fmt", type=click.Choice(["json", "toon"]), default="json",
+              help="Output format (default: json)")
+def parse(file: Path, fmt: str):
+    """Parse HATC annotations from a file."""
     blocks = parse_file(file)
-    click.echo(_blocks_to_json(blocks))
+    click.echo(_serialize(_blocks_to_dicts(blocks), fmt))
 
 
 @cli.command()
