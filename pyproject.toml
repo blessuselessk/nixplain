@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hatc"
+name = "nixplain"
 version = "0.1.0"
-description = "HATC — Human-Agent Teaming Comments toolchain"
+description = "nixplain — explain Nix configs to agents"
 requires-python = ">=3.11"
 dependencies = ["click>=8.0", "toon-format>=0.1"]
 
@@ -13,7 +13,7 @@ dependencies = ["click>=8.0", "toon-format>=0.1"]
 refine = ["anthropic>=0.40"]
 
 [project.scripts]
-hatc = "hatc.cli:main"
+nixplain = "nixplain.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

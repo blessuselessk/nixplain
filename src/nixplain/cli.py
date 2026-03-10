@@ -1,4 +1,4 @@
-"""HATC CLI — parse, compile, annotate."""
+"""nixplain CLI — parse, compile, annotate, extract."""
 
 from __future__ import annotations
 
@@ -94,9 +94,9 @@ def _serialize(data, fmt: str) -> str:
 
 
 @click.group()
-@click.version_option(package_name="hatc")
+@click.version_option(package_name="nixplain")
 def cli():
-    """HATC — Human-Agent Teaming Comments toolchain."""
+    """nixplain — explain Nix configs to agents."""
 
 
 @cli.command()

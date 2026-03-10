@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 
-from hatc.extractor import extract_file, extract_blocks, signals_to_blocks, NixSignal
+from nixplain.extractor import extract_file, extract_blocks, signals_to_blocks, NixSignal
 
 
 FIXTURE = Path(__file__).parent.parent / "example" / "ssh-bare.nix"

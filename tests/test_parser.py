@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from hatc.parser import parse_file, parse_lines
-from hatc.models import Block
+from nixplain.parser import parse_file, parse_lines
+from nixplain.models import Block
 
 EXAMPLE = Path(__file__).parent.parent / "example" / "ssh.nix"
 

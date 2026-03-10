@@ -1,5 +1,5 @@
 {
-  description = "HATC — Human-Agent Teaming Comments toolchain";
+  description = "nixplain — explain Nix configs to agents";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -114,7 +114,7 @@ sys.stdout.buffer.write(trailer)
 
         in {
         default = pkgs.python3Packages.buildPythonApplication {
-          pname = "hatc";
+          pname = "nixplain";
           version = "0.1.0";
           pyproject = true;
 
@@ -129,7 +129,7 @@ sys.stdout.buffer.write(trailer)
           '';
         };
 
-        hatc = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        nixplain = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
         # nix-why: bare CLI (bring your own model)
         nix-why-cli = nix-why-cli;

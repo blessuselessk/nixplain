@@ -3,8 +3,8 @@
 import tempfile
 from pathlib import Path
 
-from hatc.annotator import IntentFrame, annotate_file, _fill_frame
-from hatc.parser import parse_lines
+from nixplain.annotator import IntentFrame, annotate_file, _fill_frame
+from nixplain.parser import parse_lines
 
 
 def _annotate(content: str) -> list[str]:

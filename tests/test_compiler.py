@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from hatc.compiler import compile_directory
+from nixplain.compiler import compile_directory
 
 EXAMPLE_DIR = Path(__file__).parent.parent / "example"
 

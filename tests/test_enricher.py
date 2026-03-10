@@ -1,11 +1,11 @@
 """Tests for the enricher module."""
 
 from unittest.mock import patch, MagicMock
-from hatc.enricher import (
+from nixplain.enricher import (
     format_signal_input, enrich_blocks, find_nix_why,
 )
-from hatc.extractor import NixSignal
-from hatc.models import Block, Constraint, Grant
+from nixplain.extractor import NixSignal
+from nixplain.models import Block, Constraint, Grant
 
 
 class TestFormatSignalInput:
@@ -51,19 +51,19 @@ class TestEnrichBlocks:
         mock_result.returncode = 0
         mock_result.stdout = '{"intent": "Force-enable SSH", "posture": "locked", "rationale": "reason"}'
 
-        with patch("hatc.enricher.subprocess.run", return_value=mock_result):
+        with patch("nixplain.enricher.subprocess.run", return_value=mock_result):
             result = enrich_blocks([sig], [block], nix_why="/fake/nix-why")
 
         assert result[0].intent is not None
         assert result[0].intent.text == "Force-enable SSH"
 
     def test_skips_blocks_with_existing_intent(self):
-        from hatc.models import Intent
+        from nixplain.models import Intent
         sig = NixSignal(kind="mkForce", attrpath="x", line=1, value="true")
         block = Block(file="t.nix", start_line=1, end_line=1,
                       intent=Intent(text="existing", line=1))
 
-        with patch("hatc.enricher.subprocess.run") as mock_run:
+        with patch("nixplain.enricher.subprocess.run") as mock_run:
             enrich_blocks([sig], [block], nix_why="/fake/nix-why")
             mock_run.assert_not_called()
 
@@ -76,7 +76,7 @@ class TestEnrichBlocks:
         mock_result.returncode = 1
         mock_result.stdout = ""
 
-        with patch("hatc.enricher.subprocess.run", return_value=mock_result):
+        with patch("nixplain.enricher.subprocess.run", return_value=mock_result):
             result = enrich_blocks([sig], [block], nix_why="/fake/nix-why")
 
         assert result[0].intent is None
@@ -85,7 +85,7 @@ class TestEnrichBlocks:
         sig = NixSignal(kind="mkForce", attrpath="x", line=1, value="true")
         block = Block(file="t.nix", start_line=1, end_line=1)
 
-        with patch("hatc.enricher.find_nix_why", return_value=None):
+        with patch("nixplain.enricher.find_nix_why", return_value=None):
             result = enrich_blocks([sig], [block])
 
         assert result[0].intent is None
@@ -94,9 +94,9 @@ class TestEnrichBlocks:
 class TestCompilerIntegration:
     def test_compile_bare_with_mock_enrichment(self):
         """Test that compile --bare --enrich produces AGENTS.md with intents."""
-        from hatc.compiler import compile_directory
-        from hatc.extractor import extract_file, signals_to_blocks
-        from hatc.models import Intent
+        from nixplain.compiler import compile_directory
+        from nixplain.extractor import extract_file, signals_to_blocks
+        from nixplain.models import Intent
         from pathlib import Path
 
         def mock_source(path: Path) -> list:

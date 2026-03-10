@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import pytest
 
-from hatc.nixf import analyze_file, enrich_signals, find_nixf_tidy, NixfDiagnostic
+from nixplain.nixf import analyze_file, enrich_signals, find_nixf_tidy, NixfDiagnostic
 
 
 @pytest.fixture
