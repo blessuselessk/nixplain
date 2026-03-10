@@ -7,7 +7,7 @@ name = "nixplain"
 version = "0.1.0"
 description = "nixplain — explain Nix configs to agents"
 requires-python = ">=3.11"
-dependencies = ["click>=8.0", "toon-format>=0.1"]
+dependencies = ["click>=8.0", "toon-format>=0.1", "tree-sitter>=0.23", "tree-sitter-nix>=0.1"]
 
 [project.optional-dependencies]
 refine = ["anthropic>=0.40"]

@@ -197,5 +197,47 @@ def extract(file: Path, fmt: str, signals: bool, use_nixf: bool, enrich: bool):
     click.echo(_serialize(data, fmt))
 
 
+@cli.command()
+@click.argument("file", type=click.Path(exists=True, path_type=Path))
+@click.option("-f", "--format", "fmt", type=click.Choice(["nix", "json", "toon"]), default="nix",
+              help="Output format: nix (annotated source), json, or toon")
+@click.option("-i", "--in-place", is_flag=True, default=False,
+              help="Write annotations back into the source file (nix format only)")
+@click.option("-o", "--output", type=click.Path(path_type=Path), default=None,
+              help="Write output to a file")
+def inject(file: Path, fmt: str, in_place: bool, output: Path | None):
+    """Inject HATC comments into a bare .nix file using nix-why."""
+    from .enricher import enrich_blocks, find_nix_why
+    from .extractor import extract_file as ext_file, signals_to_blocks
+    from .injector import inject_file
+
+    nix_why = find_nix_why()
+    if not nix_why:
+        click.echo("Error: nix-why not found. Build with: nix build .#nix-why", err=True)
+        sys.exit(1)
+
+    sigs = ext_file(file)
+    blocks = signals_to_blocks(sigs, file=str(file))
+    enrich_blocks(sigs, blocks, nix_why)
+
+    if fmt == "nix":
+        result = inject_file(file, blocks, in_place=in_place)
+        if output:
+            output.write_text(result)
+            click.echo(f"Wrote {output}")
+        elif not in_place:
+            click.echo(result, nl=False)
+        else:
+            click.echo(f"Annotated {file}")
+    else:
+        data = _blocks_to_dicts(blocks)
+        result = _serialize(data, fmt)
+        if output:
+            output.write_text(result)
+            click.echo(f"Wrote {output}")
+        else:
+            click.echo(result)
+
+
 def main():
     cli()

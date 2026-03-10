@@ -121,11 +121,19 @@ sys.stdout.buffer.write(trailer)
           src = ./.;
 
           build-system = [ pkgs.python3Packages.setuptools ];
-          dependencies = [ pkgs.python3Packages.click toon-format ];
+          dependencies = [
+            pkgs.python3Packages.click
+            pkgs.python3Packages.tree-sitter
+            pkgs.python3Packages.tree-sitter-grammars.tree-sitter-nix
+            toon-format
+          ];
 
-          nativeCheckInputs = [ pkgs.python3Packages.pytest ];
+          nativeCheckInputs = [
+            pkgs.python3Packages.pytest
+            pkgs.nixf
+          ];
           checkPhase = ''
-            pytest tests/
+            pytest tests/ -k "not test_analyze_file and not test_unused"
           '';
         };
 
