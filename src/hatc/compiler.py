@@ -3,19 +3,29 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Callable
 
 from .models import Block
 from .parser import parse_file
 
 
-def compile_directory(directory: str | Path) -> str:
-    """Walk a directory for .nix files, parse HATC annotations, and generate AGENTS.md."""
+def compile_directory(
+    directory: str | Path,
+    *,
+    block_source: Callable[[Path], list[Block]] | None = None,
+) -> str:
+    """Walk a directory for .nix files, extract blocks, and generate AGENTS.md.
+
+    block_source: function that takes a Path and returns Block list.
+                  Defaults to parse_file (reads HATC comments).
+    """
     directory = Path(directory)
     nix_files = sorted(directory.rglob("*.nix"))
+    source = block_source or parse_file
 
     all_blocks: dict[Path, list[Block]] = {}
     for nix_file in nix_files:
-        blocks = parse_file(nix_file)
+        blocks = source(nix_file)
         if blocks:
             all_blocks[nix_file] = blocks
 
@@ -46,7 +56,14 @@ def _emit_agents_md(base: Path, file_blocks: dict[Path, list[Block]]) -> str:
             blocks = file_blocks[fpath]
             for block in blocks:
                 if block.intent:
-                    sections.append(f"#! {block.intent.text}")
+                    sections.append(f"- **L{block.start_line}** #! {block.intent.text}")
+                    for c in block.constraints:
+                        tag = "#=" if c.hard else "#?"
+                        sections.append(f"  - `{tag}` {c.text}" if c.text else f"  - `{tag}`")
+                    for d in block.dependencies:
+                        sections.append(f"  - `#{d.arrow}` {d.target}")
+                    for r in block.rationales:
+                        sections.append(f"  - `#~` {r.text}")
             sections.append("")
 
     # Cross-file dependency map

@@ -11,6 +11,7 @@ import click
 
 from .annotator import annotate_file
 from .compiler import compile_directory
+from .extractor import extract_file, extract_blocks
 from .parser import parse_file
 
 
@@ -112,9 +113,32 @@ def parse(file: Path, fmt: str):
 @click.argument("directory", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option("-o", "--output", type=click.Path(path_type=Path), default=None,
               help="Output file (default: stdout)")
-def compile(directory: Path, output: Path | None):
+@click.option("--bare", is_flag=True, default=False,
+              help="Extract from bare .nix files (no HATC comments needed)")
+@click.option("--enrich", is_flag=True, default=False,
+              help="Use nix-why LLM to generate intents (implies --bare)")
+def compile(directory: Path, output: Path | None, bare: bool, enrich: bool):
     """Compile HATC annotations into AGENTS.md."""
-    content = compile_directory(directory)
+    if enrich:
+        bare = True
+
+    if bare:
+        from .enricher import enrich_blocks, find_nix_why
+        from .extractor import extract_file as ext_file, signals_to_blocks
+
+        nix_why = find_nix_why() if enrich else None
+
+        def bare_source(path: Path) -> list:
+            sigs = ext_file(path)
+            blocks = signals_to_blocks(sigs, file=str(path))
+            if enrich and nix_why:
+                enrich_blocks(sigs, blocks, nix_why)
+            return blocks
+
+        content = compile_directory(directory, block_source=bare_source)
+    else:
+        content = compile_directory(directory)
+
     if output:
         output.write_text(content)
         click.echo(f"Wrote {output}")
@@ -134,6 +158,43 @@ def annotate(file: Path, refine: bool):
             click.echo(s)
     else:
         click.echo("No suggestions — all blocks are annotated or have no HATC tags.")
+
+
+@cli.command()
+@click.argument("file", type=click.Path(exists=True, path_type=Path))
+@click.option("-f", "--format", "fmt", type=click.Choice(["json", "toon"]), default="json",
+              help="Output format (default: json)")
+@click.option("--signals", is_flag=True, default=False,
+              help="Output raw NixSignals instead of HATC blocks")
+@click.option("--nixf", "use_nixf", is_flag=True, default=False,
+              help="Include nixf semantic diagnostics (requires nixf-tidy)")
+@click.option("--enrich", is_flag=True, default=False,
+              help="Use nix-why LLM to generate intent/posture/rationale for each signal")
+def extract(file: Path, fmt: str, signals: bool, use_nixf: bool, enrich: bool):
+    """Extract Nix module-system semantics from bare .nix files."""
+    sigs = extract_file(file)
+
+    if signals and not enrich:
+        from dataclasses import asdict
+        data = [asdict(s) for s in sigs]
+    else:
+        blocks = extract_blocks(file)
+
+        if enrich:
+            from .enricher import enrich_blocks
+            blocks = enrich_blocks(sigs, blocks)
+
+        data = _blocks_to_dicts(blocks)
+
+    if use_nixf:
+        from .nixf import analyze_file as nixf_analyze, enrich_signals
+        diagnostics = nixf_analyze(file)
+        enrichments = enrich_signals([], diagnostics)
+        output = {"blocks" if not signals else "signals": data, "nixf": enrichments}
+        click.echo(json.dumps(output, indent=2))
+        return
+
+    click.echo(_serialize(data, fmt))
 
 
 def main():

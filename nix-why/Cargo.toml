@@ -1,0 +1,26 @@
+[package]
+name = "nix-why"
+version = "0.1.0"
+edition = "2021"
+description = "Nix configuration semantic analyzer using local LLM"
+license = "MIT"
+build = "build.rs"
+
+[features]
+default = []
+cuda = ["llama-cpp-2/cuda"]
+vulkan = ["llama-cpp-2/vulkan"]
+metal = ["llama-cpp-2/metal"]
+
+[dependencies]
+llama-cpp-2 = "0.1"
+anyhow = "1.0"
+colored = "3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
